@@ -537,44 +537,39 @@
             }
         }
 
-        // Handle OAuth callback (if page loaded with code parameter)
+        // Handle OAuth callback (if page loaded with token parameter)
         async function handleOAuthCallback() {
             const urlParams = new URLSearchParams(window.location.search);
-            const code = urlParams.get('code');
+            const token = urlParams.get('token');
+            const userJson = urlParams.get('user');
+            const error = urlParams.get('error');
             
-            if (code) {
+            if (error) {
+                alert('Authentication failed. Please try again.');
+                return;
+            }
+            
+            if (token && userJson) {
                 try {
-                    const response = await fetch(`${API_BASE_URL}/auth/discord-callback`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ code })
-                    });
+                    const userData = JSON.parse(decodeURIComponent(userJson));
                     
-                    const data = await response.json();
+                    userState.accessToken = token;
+                    userState.loggedIn = true;
+                    userState.discordId = userData.discordId;
+                    userState.hasParticipantRole = userData.hasParticipantRole;
+                    userState.hasPlayerRole = userData.hasPlayerRole;
                     
-                    if (data.token) {
-                        userState.accessToken = data.token;
-                        userState.loggedIn = true;
-                        userState.discordId = data.user.discordId;
-                        userState.hasParticipantRole = data.user.hasParticipantRole;
-                        userState.hasPlayerRole = data.user.hasPlayerRole;
-                        
-                        try {
-                            localStorage.setItem('minedeath_token', data.token);
-                        } catch (e) {
-                            // localStorage not available
-                        }
-                        
-                        // Clean URL and show store
-                        window.history.replaceState({}, document.title, window.location.pathname);
-                        showStore();
-                    } else {
-                        alert('Authentication failed. Please try again.');
+                    try {
+                        localStorage.setItem('minedeath_token', token);
+                    } catch (e) {
+                        // localStorage not available
                     }
+                    
+                    // Clean URL and show store
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                    showStore();
                 } catch (error) {
-                    console.error('OAuth callback failed:', error);
+                    console.error('Failed to parse user data:', error);
                     alert('Authentication error. Please try again.');
                 }
             }
