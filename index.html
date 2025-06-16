@@ -1,717 +1,82 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Minedeath</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+async function purchaseItem(itemId) {
+    if (!userState.loggedIn) {
+        alert('Please login first');
+        return;
+    }
 
-        body {
-            font-family: 'Arial', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: #fff;
-            min-height: 100vh;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
-        }
-
-        header {
-            text-align: center;
-            padding: 60px 0;
-        }
-
-        h1 {
-            font-size: 4rem;
-            font-weight: bold;
-            margin-bottom: 20px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .subtitle {
-            font-size: 1.3rem;
-            opacity: 0.9;
-            margin-bottom: 40px;
-        }
-
-        .main-content {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 40px;
-            margin-bottom: 60px;
-        }
-
-        .info-section {
-            background: rgba(255,255,255,0.1);
-            padding: 40px;
-            border-radius: 20px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.2);
-        }
-
-        .info-section h2 {
-            font-size: 2rem;
-            margin-bottom: 20px;
-            color: #4ecdc4;
-        }
-
-        .info-section p {
-            font-size: 1.1rem;
-            line-height: 1.6;
-            margin-bottom: 20px;
-            opacity: 0.9;
-        }
-
-        .how-it-works {
-            list-style: none;
-            margin-top: 20px;
-        }
-
-        .how-it-works li {
-            padding: 10px 0;
-            padding-left: 30px;
-            position: relative;
-        }
-
-        .how-it-works li::before {
-            content: "→";
-            position: absolute;
-            left: 0;
-            color: #4ecdc4;
-            font-weight: bold;
-        }
-
-        .sidebar {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .store-section {
-            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
-            padding: 30px;
-            border-radius: 20px;
-            text-align: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            transform: scale(1.05);
-        }
-
-        .store-button {
-            display: inline-block;
-            background: #fff;
-            color: #ff6b6b;
-            padding: 15px 30px;
-            border-radius: 50px;
-            text-decoration: none;
-            font-weight: bold;
-            font-size: 1.2rem;
-            margin-top: 15px;
-            transition: all 0.3s ease;
-            cursor: pointer;
-            border: none;
-        }
-
-        .store-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        }
-
-        .discord-note {
-            font-size: 0.9rem;
-            opacity: 0.8;
-            margin-top: 10px;
-        }
-
-        .links-section {
-            background: rgba(255,255,255,0.1);
-            padding: 20px;
-            border-radius: 15px;
-            backdrop-filter: blur(10px);
-        }
-
-        .links-section h3 {
-            margin-bottom: 15px;
-            color: #4ecdc4;
-        }
-
-        .social-links {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .social-link {
-            color: #fff;
-            text-decoration: none;
-            padding: 10px 15px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 10px;
-            transition: all 0.3s ease;
-        }
-
-        .social-link:hover {
-            background: rgba(255,255,255,0.2);
-            transform: translateX(5px);
-        }
-
-        .hidden {
-            display: none;
-        }
-
-        .store-page {
-            text-align: center;
-            padding: 40px 0;
-        }
-
-        .login-section {
-            background: rgba(255,255,255,0.1);
-            padding: 40px;
-            border-radius: 20px;
-            margin-bottom: 40px;
-            backdrop-filter: blur(10px);
-        }
-
-        .product-options {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 40px;
-            margin-top: 40px;
-        }
-
-        .product-card {
-            background: rgba(255,255,255,0.1);
-            padding: 30px;
-            border-radius: 20px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.2);
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-
-        .product-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
-        }
-
-        .product-card.disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .product-card.disabled:hover {
-            transform: none;
-            box-shadow: none;
-        }
-
-        .product-image {
-            width: 100%;
-            height: 200px;
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            border-radius: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2rem;
-            margin-bottom: 20px;
-        }
-
-        .ctg-products {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-top: 40px;
-        }
-
-        .ctg-item {
-            background: rgba(255,255,255,0.1);
-            padding: 20px;
-            border-radius: 15px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .ctg-item:hover {
-            transform: translateY(-3px);
-            background: rgba(255,255,255,0.2);
-        }
-
-        .ctg-item-image {
-            width: 100%;
-            height: 150px;
-            background: linear-gradient(45deg, #4ecdc4, #44a08d);
-            border-radius: 10px;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .back-button {
-            background: rgba(255,255,255,0.2);
-            color: #fff;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 25px;
-            cursor: pointer;
-            margin-bottom: 20px;
-            transition: all 0.3s ease;
-        }
-
-        .back-button:hover {
-            background: rgba(255,255,255,0.3);
-        }
-
-        @media (max-width: 768px) {
-            .main-content {
-                grid-template-columns: 1fr;
-            }
-            
-            .product-options {
-                grid-template-columns: 1fr;
-            }
-            
-            h1 {
-                font-size: 2.5rem;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <!-- Home Page -->
-        <div id="home-page">
-            <header>
-                <h1>MINEDEATH</h1>
-                <p class="subtitle">Where Gaming Meets Reality</p>
-            </header>
-
-            <div class="main-content">
-                <div class="info-section">
-                    <h2>What is Minedeath?</h2>
-                    <p>Minedeath is an innovative gaming experience that blurs the line between spectator and participant. It's a dynamic, community-driven game where every decision matters and real-world actions directly impact the virtual environment.</p>
-                    
-                    <h2>How It Works</h2>
-                    <ul class="how-it-works">
-                        <li>Join our Discord community to get started</li>
-                        <li>Purchase participation tickets or game-changing items</li>
-                        <li>Watch live streams on Twitch as your actions unfold</li>
-                        <li>Influence the game world through real-time purchases</li>
-                        <li>Experience unprecedented interactivity in gaming</li>
-                    </ul>
-                </div>
-
-                <div class="sidebar">
-                    <div class="store-section">
-                        <h3>Ready to Play?</h3>
-                        <p>Access exclusive content and game-changing features</p>
-                        <button class="store-button" onclick="showStore()">ENTER STORE</button>
-                        <p class="discord-note">Requires Discord Login</p>
-                    </div>
-
-                    <div class="links-section">
-                        <h3>Connect With Us</h3>
-                        <div class="social-links">
-                            <a href="#" class="social-link">🎮 Discord Community</a>
-                            <a href="#" class="social-link">📺 Twitch Stream</a>
-                            <a href="#" class="social-link">📧 Contact</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Store Page -->
-        <div id="store-page" class="hidden">
-            <button class="back-button" onclick="showHome()">← Back to Home</button>
-            
-            <div class="store-page">
-                <h1>Minedeath Store</h1>
-                
-                <div class="login-section" id="login-section">
-                    <h2>Discord Authentication Required</h2>
-                    <p>Please login with Discord to access store features</p>
-                    <button class="store-button" onclick="initiateDiscordLogin()">Login with Discord</button>
-                </div>
-
-                <div class="product-options hidden" id="product-options">
-                    <div class="product-card" onclick="showChangeGame()">
-                        <div class="product-image">🎮</div>
-                        <h3>Change the Game</h3>
-                        <p>Purchase digital items that modify game properties in real-time. Each purchase triggers instant changes in the live game world.</p>
-                    </div>
-
-                    <div class="product-card" id="play-game-card" onclick="checkPlayGameAccess()">
-                        <div class="product-image">🎫</div>
-                        <h3>Play the Game</h3>
-                        <p>Limited participation tickets. Gain access to actively participate in the game. One ticket per account, limited availability.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Change the Game Page -->
-        <div id="change-game-page" class="hidden">
-            <button class="back-button" onclick="showStore()">← Back to Store</button>
-            
-            <div class="store-page">
-                <h1>Change the Game</h1>
-                <p>Digital items that instantly modify the game world through webhook integration</p>
-                
-                <div class="ctg-products">
-                    <div class="ctg-item" onclick="purchaseItem('weather-storm')">
-                        <div class="ctg-item-image">⛈️</div>
-                        <h4>Summon Storm</h4>
-                        <p>$2.99</p>
-                    </div>
-                    
-                    <div class="ctg-item" onclick="purchaseItem('spawn-monsters')">
-                        <div class="ctg-item-image">👹</div>
-                        <h4>Spawn Monsters</h4>
-                        <p>$1.99</p>
-                    </div>
-                    
-                    <div class="ctg-item" onclick="purchaseItem('build-bridge')">
-                        <div class="ctg-item-image">🌉</div>
-                        <h4>Build Bridge</h4>
-                        <p>$4.99</p>
-                    </div>
-                    
-                    <div class="ctg-item" onclick="purchaseItem('time-skip')">
-                        <div class="ctg-item-image">⏰</div>
-                        <h4>Time Skip</h4>
-                        <p>$3.99</p>
-                    </div>
-                    
-                    <div class="ctg-item" onclick="purchaseItem('healing-rain')">
-                        <div class="ctg-item-image">🌧️</div>
-                        <h4>Healing Rain</h4>
-                        <p>$2.49</p>
-                    </div>
-                    
-                    <div class="ctg-item" onclick="purchaseItem('treasure-chest')">
-                        <div class="ctg-item-image">💎</div>
-                        <h4>Treasure Chest</h4>
-                        <p>$5.99</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Play the Game Page -->
-        <div id="play-game-page" class="hidden">
-            <button class="back-button" onclick="showStore()">← Back to Store</button>
-            
-            <div class="store-page">
-                <h1>Play the Game</h1>
-                <div class="product-card" style="max-width: 500px; margin: 0 auto;">
-                    <div class="product-image">🎫</div>
-                    <h3>Participation Ticket</h3>
-                    <p>Limited availability - Get your ticket to actively participate in Minedeath</p>
-                    <p><strong>$9.99 per ticket</strong></p>
-                    <p id="ticket-status">Checking availability...</p>
-                    <button class="store-button" id="buy-ticket-btn" onclick="purchaseTicket()">Purchase Ticket</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // Configuration - set your backend API URL here
-        const API_BASE_URL = 'https://minedeath-backend-production.up.railway.app/api';
-        
-        // User state
-        let userState = {
-            loggedIn: false,
-            hasParticipantRole: false,
-            hasPlayerRole: false,
-            discordId: null,
-            accessToken: null
-        };
-
-        // Check if user is already logged in (from localStorage)
-        function checkExistingAuth() {
-            try {
-                const token = localStorage.getItem('minedeath_token');
-                if (token) {
-                    userState.accessToken = token;
-                    verifyToken();
-                }
-            } catch (error) {
-                // localStorage not available (sandboxed environment)
-                console.log('localStorage not available');
-            }
-        }
-
-        async function verifyToken() {
-            try {
-                const response = await fetch(`${API_BASE_URL}/auth/verify`, {
-                    headers: {
-                        'Authorization': `Bearer ${userState.accessToken}`
-                    }
-                });
-                
-                if (response.ok) {
-                    const userData = await response.json();
-                    userState.loggedIn = true;
-                    userState.discordId = userData.discordId;
-                    userState.hasParticipantRole = userData.hasParticipantRole;
-                    userState.hasPlayerRole = userData.hasPlayerRole;
-                    
-                    if (document.getElementById('store-page').classList.contains('hidden') === false) {
-                        showAuthenticatedStore();
-                    }
-                } else {
-                    try {
-                        localStorage.removeItem('minedeath_token');
-                    } catch (e) {
-                        // localStorage not available
-                    }
-                    userState.accessToken = null;
-                }
-            } catch (error) {
-                console.error('Token verification failed:', error);
-                try {
-                    localStorage.removeItem('minedeath_token');
-                } catch (e) {
-                    // localStorage not available
-                }
-                userState.accessToken = null;
-            }
-        }
-
-        function showHome() {
-            document.getElementById('home-page').classList.remove('hidden');
-            document.getElementById('store-page').classList.add('hidden');
-            document.getElementById('change-game-page').classList.add('hidden');
-            document.getElementById('play-game-page').classList.add('hidden');
-        }
-
-        function showStore() {
-            document.getElementById('home-page').classList.add('hidden');
-            document.getElementById('store-page').classList.remove('hidden');
-            document.getElementById('change-game-page').classList.add('hidden');
-            document.getElementById('play-game-page').classList.add('hidden');
-            
-            if (!userState.loggedIn) {
-                document.getElementById('login-section').classList.remove('hidden');
-                document.getElementById('product-options').classList.add('hidden');
-            } else {
-                showAuthenticatedStore();
-            }
-        }
-
-        function showAuthenticatedStore() {
-            document.getElementById('login-section').classList.add('hidden');
-            document.getElementById('product-options').classList.remove('hidden');
-            updatePlayGameCard();
-        }
-
-        async function initiateDiscordLogin() {
-            try {
-                // Get Discord OAuth URL from backend
-                const response = await fetch(`${API_BASE_URL}/auth/discord-url`);
-                const data = await response.json();
-                
-                if (data.authUrl) {
-                    // Redirect to Discord OAuth
-                    window.location.href = data.authUrl;
-                } else {
-                    alert('Failed to initiate Discord login. Please try again.');
-                }
-            } catch (error) {
-                console.error('Discord login failed:', error);
-                alert('Connection error. Please check your internet connection and try again.');
-            }
-        }
-
-        // Handle OAuth callback (if page loaded with token parameter)
-        async function handleOAuthCallback() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const token = urlParams.get('token');
-            const userJson = urlParams.get('user');
-            const error = urlParams.get('error');
-            
-            if (error) {
-                alert('Authentication failed. Please try again.');
-                return;
-            }
-            
-            if (token && userJson) {
-                try {
-                    const userData = JSON.parse(decodeURIComponent(userJson));
-                    
-                    userState.accessToken = token;
-                    userState.loggedIn = true;
-                    userState.discordId = userData.discordId;
-                    userState.hasParticipantRole = userData.hasParticipantRole;
-                    userState.hasPlayerRole = userData.hasPlayerRole;
-                    
-                    try {
-                        localStorage.setItem('minedeath_token', token);
-                    } catch (e) {
-                        // localStorage not available
-                    }
-                    
-                    // Clean URL and show store
-                    window.history.replaceState({}, document.title, window.location.pathname);
-                    showStore();
-                } catch (error) {
-                    console.error('Failed to parse user data:', error);
-                    alert('Authentication error. Please try again.');
-                }
-            }
-        }
-
-        function updatePlayGameCard() {
-            const playGameCard = document.getElementById('play-game-card');
-            if (userState.hasParticipantRole || userState.hasPlayerRole) {
-                playGameCard.classList.add('disabled');
-                playGameCard.onclick = null;
-            }
-        }
-
-        function showChangeGame() {
-            document.getElementById('store-page').classList.add('hidden');
-            document.getElementById('change-game-page').classList.remove('hidden');
-        }
-
-        async function checkPlayGameAccess() {
-            if (userState.hasParticipantRole || userState.hasPlayerRole) {
-                alert('You already have access to play the game!');
-                return;
-            }
-            
-            document.getElementById('store-page').classList.add('hidden');
-            document.getElementById('play-game-page').classList.remove('hidden');
-            
-            // Check ticket availability from backend
-            try {
-                const response = await fetch(`${API_BASE_URL}/tickets/availability`, {
-                    headers: {
-                        'Authorization': `Bearer ${userState.accessToken}`
-                    }
-                });
-                
-                const data = await response.json();
-                const statusEl = document.getElementById('ticket-status');
-                const btnEl = document.getElementById('buy-ticket-btn');
-                
-                if (data.available) {
-                    statusEl.textContent = `${data.remaining} tickets available!`;
-                    statusEl.style.color = '#4ecdc4';
-                    btnEl.disabled = false;
-                } else {
-                    statusEl.textContent = 'Sold Out - Check back later';
-                    statusEl.style.color = '#ff6b6b';
-                    btnEl.disabled = true;
-                    btnEl.textContent = 'Sold Out';
-                }
-            } catch (error) {
-                console.error('Failed to check ticket availability:', error);
-                document.getElementById('ticket-status').textContent = 'Error checking availability';
-            }
-        }
-
-        async function purchaseItem(itemId) {
-            if (!userState.loggedIn) {
-                alert('Please login first');
-                return;
-            }
-
-            try {
-                const response = await fetch(`${API_BASE_URL}/purchase/item`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${userState.accessToken}`
-                    },
-                    body: JSON.stringify({ 
-                        itemId: itemId,
-                        discordId: userState.discordId 
-                    })
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    alert(`${data.itemName} purchased successfully! Game modification in progress...`);
-                } else {
-                    alert(`Purchase failed: ${data.error}`);
-                }
-            } catch (error) {
-                console.error('Purchase failed:', error);
-                alert('Purchase failed. Please try again.');
-            }
-        }
-
-        async function purchaseTicket() {
-            if (!userState.loggedIn) {
-                alert('Please login first');
-                return;
-            }
-
-            try {
-                const response = await fetch(`${API_BASE_URL}/purchase/ticket`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${userState.accessToken}`
-                    },
-                    body: JSON.stringify({ 
-                        discordId: userState.discordId 
-                    })
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    alert('Ticket purchased successfully! You now have participant access!');
-                    userState.hasParticipantRole = true;
-                    showStore();
-                    updatePlayGameCard();
-                } else {
-                    alert(`Purchase failed: ${data.error}`);
-                }
-            } catch (error) {
-                console.error('Ticket purchase failed:', error);
-                alert('Purchase failed. Please try again.');
-            }
-        }
-
-        function logout() {
-            try {
-                localStorage.removeItem('minedeath_token');
-            } catch (e) {
-                // localStorage not available
-            }
-            userState = {
-                loggedIn: false,
-                hasParticipantRole: false,
-                hasPlayerRole: false,
-                discordId: null,
-                accessToken: null
-            };
-            showHome();
-        }
-
-        // Initialize app
-        document.addEventListener('DOMContentLoaded', () => {
-            handleOAuthCallback();
-            checkExistingAuth();
+    try {
+        // Create payment intent (or get staff bypass)
+        const response = await fetch(`${API_BASE_URL}/purchase/item/create-payment`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${userState.accessToken}`
+            },
+            body: JSON.stringify({ itemId: itemId })
         });
-    </script>
-</body>
-</html>
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+            alert(`Error: ${data.error}`);
+            return;
+        }
+        
+        // Check if staff bypass was applied
+        if (data.staffBypass) {
+            alert('Staff purchase completed immediately - no payment required!');
+            return;
+        }
+        
+        // For non-staff users, proceed with Stripe payment
+        // TODO: Add Stripe payment integration here
+        alert('Payment system integration needed - Stripe payment would happen here');
+        
+    } catch (error) {
+        console.error('Purchase failed:', error);
+        alert('Purchase failed. Please try again.');
+    }
+}
+
+async function purchaseTicket() {
+    if (!userState.loggedIn) {
+        alert('Please login first');
+        return;
+    }
+
+    try {
+        // Create payment intent (or get staff bypass)
+        const response = await fetch(`${API_BASE_URL}/purchase/ticket/create-payment`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${userState.accessToken}`
+            },
+            body: JSON.stringify({})
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+            alert(`Error: ${data.error}`);
+            return;
+        }
+        
+        // Check if staff bypass was applied
+        if (data.staffBypass) {
+            alert('Staff ticket granted immediately - no payment required!');
+            userState.hasParticipantRole = true;
+            showStore();
+            updatePlayGameCard();
+            return;
+        }
+        
+        // For non-staff users, proceed with Stripe payment
+        // TODO: Add Stripe payment integration here
+        alert('Payment system integration needed - Stripe payment would happen here');
+        
+    } catch (error) {
+        console.error('Ticket purchase failed:', error);
+        alert('Purchase failed. Please try again.');
+    }
+}
