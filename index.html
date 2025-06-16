@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Minedeath</title>
+    <script src="https://js.stripe.com/v3/"></script>
     <style>
         * {
             margin: 0;
@@ -432,6 +433,9 @@
         // Configuration - set your backend API URL here
         const API_BASE_URL = 'https://minedeath-backend-production.up.railway.app/api';
         
+        // Initialize Stripe (you'll need to replace with your actual publishable key)
+        const stripe = Stripe('pk_live_51Hq9qnIz5S2ZDZKZis9ZpvdyyjGDCJMeP8dkj9ZInv3twwcpKnjLln9hzLAsYzqsPLOHSIyXk1bAeKvMgEZS7lss000hndtrYL'); // Replace with your actual key
+    
         // User state
         let userState = {
             loggedIn: false,
@@ -632,59 +636,74 @@
             }
 
             try {
-                const response = await fetch(`${API_BASE_URL}/purchase/item`, {
+                // Create payment intent
+                const response = await fetch(`${API_BASE_URL}/purchase/item/create-payment`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${userState.accessToken}`
                     },
-                    body: JSON.stringify({ 
-                        itemId: itemId,
-                        discordId: userState.discordId 
-                    })
+                    body: JSON.stringify({ itemId: itemId })
                 });
                 
                 const data = await response.json();
                 
-                if (data.success) {
-                    alert(`${data.itemName} purchased successfully! Game modification in progress...`);
-                } else {
-                    alert(`Purchase failed: ${data.error}`);
+                if (!response.ok) {
+                    alert(`Error: ${data.error}`);
+                    return;
                 }
+                
+                // Check if staff bypass was applied
+                if (data.staffBypass) {
+                    alert('Staff purchase completed immediately - no payment required!');
+                    return;
+                }
+                
+                // Use the payment modal for regular users
+                await createPaymentModal(data.clientSecret, data.amount, 'Game Item');
+                
             } catch (error) {
                 console.error('Purchase failed:', error);
                 alert('Purchase failed. Please try again.');
             }
         }
-
-        async function purchaseTicket() {
+        
+       async function purchaseTicket() {
             if (!userState.loggedIn) {
                 alert('Please login first');
                 return;
             }
 
             try {
-                const response = await fetch(`${API_BASE_URL}/purchase/ticket`, {
+                // Create payment intent
+                const response = await fetch(`${API_BASE_URL}/purchase/ticket/create-payment`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${userState.accessToken}`
                     },
-                    body: JSON.stringify({ 
-                        discordId: userState.discordId 
-                    })
+                    body: JSON.stringify({})
                 });
                 
                 const data = await response.json();
                 
-                if (data.success) {
-                    alert('Ticket purchased successfully! You now have participant access!');
+                if (!response.ok) {
+                    alert(`Error: ${data.error}`);
+                    return;
+                }
+                
+                // Check if staff bypass was applied
+                if (data.staffBypass) {
+                    alert('Staff ticket granted immediately - no payment required!');
                     userState.hasParticipantRole = true;
                     showStore();
                     updatePlayGameCard();
-                } else {
-                    alert(`Purchase failed: ${data.error}`);
+                    return;
                 }
+                
+                // Use the payment modal for regular users
+                await createPaymentModal(data.clientSecret, data.amount, 'Participation Ticket');
+                
             } catch (error) {
                 console.error('Ticket purchase failed:', error);
                 alert('Purchase failed. Please try again.');
@@ -712,6 +731,52 @@
             handleOAuthCallback();
             checkExistingAuth();
         });
+        // Enhanced payment flow with custom Stripe Elements
+async function createPaymentModal(clientSecret, amount, itemName) {
+    // Create modal container
+  const modal = document.createElement('div');
+    modal.innerHTML = `
+        <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; display: flex; align-items: center; justify-content: center;">
+            <div style="background: white; padding: 30px; border-radius: 10px; max-width: 400px; width: 90%;">
+                <h3>Complete Payment</h3>
+                <p>${itemName} - $${(amount / 100).toFixed(2)}</p>
+                <div id="card-element" style="margin: 20px 0; padding: 10px; border: 1px solid #ccc; border-radius: 5px;"></div>
+                <div id="card-errors" style="color: red; margin: 10px 0;"></div>
+                <button id="pay-button" style="width: 100%; padding: 12px; background: #5469d4; color: white; border: none; border-radius: 5px; font-size: 16px;">Pay Now</button>
+                <button id="cancel-button" style="width: 100%; padding: 12px; background: #ccc; color: black; border: none; border-radius: 5px; font-size: 16px; margin-top: 10px;">Cancel</button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Setup Stripe Elements
+    const elements = stripe.elements();
+    const cardElement = elements.create('card');
+    cardElement.mount('#card-element');
+    
+    // Handle form submission
+    document.getElementById('pay-button').addEventListener('click', async () => {
+        const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+            payment_method: {
+                card: cardElement
+            }
+        });
+        
+        if (error) {
+            document.getElementById('card-errors').textContent = error.message;
+        } else {
+            document.body.removeChild(modal);
+            alert('Payment successful!');
+        }
+    });
+    
+    // Cancel button
+    document.getElementById('cancel-button').addEventListener('click', () => {
+        document.body.removeChild(modal);
+    });
+}
     </script>
+    
 </body>
 </html>
