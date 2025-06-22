@@ -992,11 +992,7 @@ window.addEventListener('beforeunload', () => {
             }
         }
 
-        function showChangeGame() {
-            document.getElementById('store-page').classList.add('hidden');
-            document.getElementById('change-game-page').classList.remove('hidden');
-        }
-
+       
         async function checkPlayGameAccess() {
             if (userState.hasParticipantRole || userState.hasPlayerRole) {
                 alert('You already have access to play the game!');
