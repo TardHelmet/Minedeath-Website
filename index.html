@@ -778,15 +778,13 @@ async function purchaseCommand(commandId) {
         alert('Purchase failed. Please try again.');
     }
 }
-
-// Initialize command store when change-game page is shown
 function showChangeGame() {
     document.getElementById('store-page').classList.add('hidden');
     document.getElementById('change-game-page').classList.remove('hidden');
     
     // Initialize command store if not already done
-    if (!commandStore) {
-        commandStore = new CommandStore();
+    if (!window.commandStore) {
+        window.commandStore = new CommandStore();
     }
 }
 
