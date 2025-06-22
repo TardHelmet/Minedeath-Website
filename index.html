@@ -782,7 +782,6 @@ function showChangeGame() {
     document.getElementById('store-page').classList.add('hidden');
     document.getElementById('change-game-page').classList.remove('hidden');
     
-    // Initialize command store if not already done
     if (!window.commandStore) {
         window.commandStore = new CommandStore();
     }
